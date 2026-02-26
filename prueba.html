@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCalc + API</title>
+    <style> 
+        body { font-family: Arial; max-width:  600px; margin: 50px auto; padding: 20px; }
+         input, button{
+            padding: 10px; margin: 5px; width:  100%; box-sizing: border-box;
+         }
+         button { background: #3498db; color: white; border: none;
+border-radius: 5px; cursor: pointer; }
+
+.resultado { background: #ecf0f1; padding: 20px; margin-top: 20px;
+
+border-radius: 5px; }
+
+.json { background: #2c3e50; color: #ecf0f1; padding: 15px;
+border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+
+.estado { font-size: 14px; margin-bottom: 10px; }
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🌐 EcoCalc con API</h1>
+
+<div class="estado" id="estadoAPI">🟡 Verificando conexión...</div>
+
+<input type="number" id="num1" placeholder="Número 1" value="10">
+
+<input type="number" id="num2" placeholder="Número 2" value="5">
+
+<div style="display: grid; grid-template-columns: repeat(3,1fr); gap:
+10px;">
+
+<button onclick="consumir('sumar')">➕ Sumar</button>
+
+<button onclick="consumir('restar')">➖ Restar</button>
+
+<button onclick="consumir('multiplicar')">✖️ Multiplicar</button>
+
+<button onclick="consumir('dividir')">➗ Dividir</button>
+
+<button onclick="consumirPorcentaje()">% Porcentaje</button>
+
+<button onclick="consumirSaludo()">👋 Saludar</button>
+
+</div>
+
+<div class="resultado">
+
+<h3>Resultado</h3>
+
+<div id="resultadoNumero" style="font-size: 32px; font-weight:
+bold; text-align: center;">0</div>
+
+</div>
+
+<div class="json">
+
+<strong>Respuesta JSON:</strong>
+
+<pre id="jsonRespuesta">{}</pre>
+
+</div>
+
+<script>
+
+const API_URL = 'http://localhost:3000/api';
+
+const estado = document.getElementById('estadoAPI');
+
+const resultadoNumero = document.getElementById('resultadoNumero');
+
+const jsonRespuesta = document.getElementById('jsonRespuesta');
+
+// Verificar API al inicio
+
+fetch('http://localhost:3000')
+
+.then(res => {
+
+if (res.ok) {
+
+estado.innerHTML = '🟢 API conectada';
+
+estado.style.color = 'green';
+
+}   
+
+})
+
+.catch(() => {
+
+estado.innerHTML = '🔴 API no disponible (ejecuta nodeserver.js)';
+
+estado.style.color = 'red';
+
+});
+
+function consumir(operacion) {
+
+const a = document.getElementById('num1').value;
+
+const b = document.getElementById('num2').value;
+
+fetch(`${API_URL}/${operacion}?a=${a}&b=${b}`)
+
+.then(res => res.json())
+
+.then(data => {
+
+resultadoNumero.textContent = data.resultado;
+
+jsonRespuesta.textContent = JSON.stringify(data, null,
+
+2);
+
+})
+
+.catch(err => {
+
+resultadoNumero.textContent = '❌ Error';
+
+jsonRespuesta.textContent = JSON.stringify({ error:
+
+err.message }, null, 2);
+
+});
+
+}
+
+function consumirPorcentaje() {
+
+const total = document.getElementById('num1').value;
+
+const porcentaje = document.getElementById('num2').value;
+
+fetch(`${API_URL}/porcentaje?total=${total}&porcentaje=${porcentaje}`)
+
+.then(res => res.json())
+
+.then(data => {
+
+resultadoNumero.textContent = data.resultado;
+
+jsonRespuesta.textContent = JSON.stringify(data, null,
+
+2);
+
+});
+
+}
+
+function consumirSaludo() {
+
+const nombre = document.getElementById('num1').value ||
+
+'Visitante';
+
+fetch(`${API_URL}/saludar?nombre=${nombre}`)
+
+.then(res => res.json())
+
+.then(data => {
+
+resultadoNumero.textContent = '👋';
+
+jsonRespuesta.textContent = JSON.stringify(data, null,
+
+2);
+
+});
+
+}
+
+</script>
+
+</body>
+
+</html>
+ 

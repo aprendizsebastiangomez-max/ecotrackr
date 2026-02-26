@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoCalc Movil API</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+background:#f5f5f5;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+padding:10px;}
+.phone{
+    max-width:400px;
+    width:100%;
+    background:white;
+    border-radius:40px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
+    overflow:hidden;
+    border:8px solid #1a1a1a;}
+.status-bar{
+    background:#1a1a1a;
+    color:white;padding:15px 20px;
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;}
+.header{
+    background:linear-gradient(135deg,#27ae60,#2ecc71);
+    color:white;
+    padding:25px 20px;
+    text-align:center;}
+.header h1{
+    font-size:28px;
+    margin-bottom:5px;}
+.content{
+    padding:25px;}
+.movil-input{
+    width:100%;
+    padding:18px;
+    border:2px solid #e0e0e0;
+    border-radius:12px;
+    font-size:18px;
+    margin-bottom:15px;
+    background:#fafafa;}
+.movil-input:focus{
+    border-color:#2ecc71;
+    outline:none;}
+.movil-resultado{
+    background:#f1f8e9;
+    padding:25px;
+    -radius:16px;
+    margin:20px 0;
+    text-align:center;
+    border:2px dashed #27ae60;}
+.movil-numero{
+    font-size:48px;
+    font-weight:800;color:#27ae60;
+    line-height:1.2;}
+.botones-movil{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;}
+.btn-movil{
+    border:none;
+    border-radius:16px;
+    padding:20px;
+    font-size:20px;
+    font-weight:20px;
+    color:white;
+    background:#3498db;
+    cursor:pointer;
+    transition:.1s;
+    box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+.btn-movil:active{
+    transform:scale(0.97);}
+.btn-verde {
+    background:#2ecc71;}
+.btn-naranja{
+    background:#e67e22;}
+.btn-morado{
+    background:#9b59b6;}
+.btn-rojo{
+    background:#e74c3c;}
+.btn-amarillo{
+    background:#f1c40f;
+    color:#333;}
+.bottom-nav{display:flex;
+    justify-content:space-around;
+    background:white;
+    padding:15px;
+    border-top:1px solid #e0e0e0;}
+.nav-item{
+    text-align:center;
+    color:#7f8c8d;}        
+.nav-item.active{
+    color:#2ecc71;}
+.json{
+    background:#2c3e50;
+    color:#ecf0f1;
+    padding:15px;
+    border-radius:5px;
+    font-family:monospace;
+    white-space:pre-wrap;
+    margin-top:10px;}
+.estado{
+    font-size:14px;
+    margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div class="phone">
+    <div class="status-bar">
+        <span>Eco Movil</span>
+        <span>100%</span>
+    </div>
+    <div class="header">
+        <h1>EcoCalc API</h1>
+        <p>App móvil usando fetch</p>
+    </div>
+    <div class="content">
+        <div class="estado" id="estadoAPI">🟡 Verificando conexión...</div>
+
+        <input type="number" id="movilNum1" class="movil-input" placeholder="Número 1">
+        <input type="number" id="movilNum2" class="movil-input" placeholder="Número 2">
+        <input type="text" id="nombre" class="movil-input" placeholder="Nombre">
+
+        <div class="movil-resultado">
+            <div style="color:#666;font-size:14px;margin-bottom:5px;">RESULTADO</div>
+            <div id="movilPantalla" class="movil-numero">0</div>
+        </div>
+
+        <div class="botones-movil">
+            <button onclick="consumir('sumar')" class="btn-movil btn-verde">+</button>
+            <button onclick="consumir('restar')" class="btn-movil btn-naranja">-</button>
+            <button onclick="consumir('multiplicar')" class="btn-movil btn-morado">X</button>
+            <button onclick="consumir('dividir')" class="btn-movil btn-rojo">/</button>
+            <button onclick="consumirPorcentaje()" class="btn-movil btn-amarillo">%</button>
+            <button onclick="consumirSaludo()" class="btn-movil btn-verde">👋</button>
+        </div>
+
+        <hr style="margin:25px 0;">
+
+<h2 style="text-align:center;margin-bottom:15px;"> Sensores Ambientales</h2>
+
+<div class="movil-resultado">
+    <div> Temperatura: <strong id="tempValor">--</strong>°C</div>
+    <div> Humedad: <strong id="humedadValor">--</strong>%</div>
+    <div> Calidad del aire (AQI): <strong id="aqiValor">--</strong></div>
+</div>
+
+<div class="movil-resultado" style="background:#e8f5e9;">
+    <div style="color:#2e7d32;font-weight:bold;">EcoTip:</div>
+    <div id="ecoTipTexto">Esperando lectura...</div>
+</div>
+
+<button onclick="nuevaLectura()" class="btn-movil btn-verde" style="width:100%;margin-top:10px;">
+    Nueva lectura
+</button>
+
+        <div class="json">
+            <strong>Respuesta JSON:</strong>
+            <pre id="jsonRespuesta">{}</pre>
+        </div>
+    </div>
+    <div class="bottom-nav"> 
+        <div class="nav-item active">🧮</div>
+        <div class="nav-item">📊</div>
+        <div class="nav-item">♻️</div>
+        <div class="nav-item">⚙️</div>
+    </div>
+</div>
+
+<script>
+const API_URL = 'http://localhost:3000/api';
+const estado = document.getElementById('estadoAPI');
+const resultadoNumero = document.getElementById('movilPantalla');
+const jsonRespuesta = document.getElementById('jsonRespuesta');
+
+function hablar(texto) {
+
+    // Validar si el navegador soporta la API
+    if (!('speechSynthesis' in window)) {
+        console.error("El navegador no soporta la API SpeechSynthesis.");
+        alert("Tu navegador no soporta síntesis de voz.");
+        return;
+    }
+
+    // Cancelar cualquier voz anterior
+    window.speechSynthesis.cancel();
+
+    const mensaje = new SpeechSynthesisUtterance(texto);
+    mensaje.lang = 'es-ES';
+    mensaje.rate = 1;
+    mensaje.pitch = 1;
+    mensaje.volume = 1;
+
+    // Evento que se ejecuta cuando termina de hablar
+    mensaje.onend = function () {
+        console.log("La reproducción de voz ha finalizado correctamente.");
+    };
+
+    // Reproducir el mensaje
+    window.speechSynthesis.speak(mensaje);
+}
+
+// Verificar API al inicio
+fetch('http://localhost:3000')
+.then(res => {
+    if(res.ok){
+        estado.innerHTML = '🟢 API conectada';
+        estado.style.color = 'green';
+    }
+})
+.catch(() => {
+    estado.innerHTML = '🔴 API no disponible (ejecuta node server.js)';
+    estado.style.color = 'red';
+});
+
+function consumir(operacion){
+    const a = document.getElementById('movilNum1').value;
+    const b = document.getElementById('movilNum2').value;
+
+    fetch(`${API_URL}/${operacion}?a=${a}&b=${b}`)
+    .then(res => res.json())
+    .then(data => {
+        resultadoNumero.textContent = data.resultado;
+        jsonRespuesta.textContent = JSON.stringify(data, null, 2);
+
+          hablar(`El resultado es ${data.resultado}`);
+
+        
+    })
+    .catch(err => {
+        resultadoNumero.textContent = '❌ Error';
+        jsonRespuesta.textContent = JSON.stringify({error: err.message}, null, 2);
+    });
+    
+
+    
+}
+
+function consumirPorcentaje(){
+    const total = document.getElementById('movilNum1').value;
+    const porcentaje = document.getElementById('movilNum2').value;
+
+    fetch(`${API_URL}/porcentaje?total=${total}&porcentaje=${porcentaje}`)
+    .then(res => res.json())
+    .then(data => {
+        resultadoNumero.textContent = data.resultado;
+        jsonRespuesta.textContent = JSON.stringify(data, null, 2);
+
+        hablar(`El resultado es ${data.resultado}`);
+    });
+}
+
+function consumirSaludo(){
+    const nombreInput = document.getElementById('nombre').value || 'amigo';
+
+    const nombre = encodeURIComponent(nombreInput); 
+
+    fetch(`${API_URL}/saludar?nombre=${nombre}`)
+    .then(res => res.json())
+    .then(data => {
+        resultadoNumero.textContent = data.resultado;
+        jsonRespuesta.textContent = JSON.stringify(data, null, 2);
+
+        hablar(data.resultado);
+    })
+    .catch(err => {
+        resultadoNumero.textContent = '❌ Error';
+        jsonRespuesta.textContent = JSON.stringify({error: err.message}, null, 2);
+    });
+
+    /**
+ * Genera valores aleatorios para simular sensores ambientales
+ * y muestra un EcoTip dinámico según las condiciones.
+ * También reproduce el tip usando síntesis de voz.
+ */
+function nuevaLectura() {
+
+    // Simulación de sensores
+    const temperatura = Math.floor(Math.random() * (33 - 18 + 1)) + 18;
+    const humedad = Math.floor(Math.random() * (80 - 40 + 1)) + 40;
+    const aqi = Math.floor(Math.random() * (120 - 20 + 1)) + 20;
+
+    // Mostrar valores
+    document.getElementById("tempValor").textContent = temperatura;
+    document.getElementById("humedadValor").textContent = humedad;
+    document.getElementById("aqiValor").textContent = aqi;
+
+    let ecoTip = "Condiciones normales, sigue cuidando el planeta ";
+
+    // Reglas según especificaciones
+    if (temperatura > 28) {
+        ecoTip = "Alta temperatura, ahorra energía.";
+    }
+
+    if (humedad > 70) {
+        ecoTip = "Alta humedad, recolecta agua de lluvia.";
+    }
+
+    if (aqi < 50) {
+        ecoTip = "Calidad del aire excelente, recicla al aire libre.";
+    }
+
+    // Mostrar EcoTip
+    document.getElementById("ecoTipTexto").textContent = ecoTip;
+
+    //  Leer automáticamente el EcoTip
+    hablar(ecoTip);
+}
+
+// Actualización automática cada 10 segundos
+setInterval(nuevaLectura, 10000);
+
+}
+</script>
+</body>
+</html>
